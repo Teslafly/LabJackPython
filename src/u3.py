@@ -27,7 +27,7 @@ except ImportError: # Python 3
 
 from struct import pack, unpack
 
-from LabJackPython import (
+from .LabJackPython import (
     Device,
     deviceCount,
     LabJackException,
@@ -1665,7 +1665,42 @@ class U3(Device):
 
         return int(max(bits, 0))
     voltageToDACBits.section = 3
-    
+
+    def setDACVoltage(self, voltage, dacNumber, resolution=16):
+        """
+         Name: U3. setDACVoltage(voltage, dacNumber, resolution=16)
+
+         Args: voltage, the voltage you would like to set the DAC to.
+               dacNumber, 0 or 1, selects the DAC channel
+               resolution, default 16 bits. the bit resolution setting of the dac.
+                           may be 16 or 8 bits. argument not required
+
+         Desc: Takes a voltage, generates appropriate dac value,
+               and sets the selected dac to that value.
+
+         Example:
+            >>> import u3
+            >>> d = u3.U3()
+            >>> d.getCalibrationData() #not needed, but will make the dac output more accurate with cal
+            >>> d.set_dac_voltage(1.2, 0) #sets dac0 to 1.2v.
+            # optionally, resolution can be set to 8 bits. default is 16 bits.
+            >>> d.set_dac_voltage(3.1, 1, resolution=8) #sets dac1 to 3.1v in 8 bit mode
+        """
+
+        assert voltage >= 0 and voltage <= 5, \
+            'voltage must be between 0v and 5v. v=' + str(voltage)
+
+        if resolution is 16:
+            DAC_VALUE = self.voltageToDACBits(voltage, dacNumber=dacNumber, is16Bits=True)
+            self.getFeedback(DAC16(Dac=dacNumber, Value=DAC_VALUE))
+
+        elif resolution is 8:
+            DAC_VALUE = self.voltageToDACBits(voltage, dacNumber=dacNumber, is16Bits=False)
+            self.getFeedback(DAC8(Dac=dacNumber, Value=DAC_VALUE))
+
+        else:
+            raise AssertionError('Resolution must be 8 or 16 bits. res=' + str(resolution))
+
     def getCalibrationData(self):
         """
         Name: U3.getCalibrationData()

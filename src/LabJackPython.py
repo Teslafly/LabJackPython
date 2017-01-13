@@ -21,7 +21,7 @@ import threading  # For a thread-safe device lock
 
 from struct import pack, unpack
 
-import Modbus
+from . import Modbus
 
 
 LABJACKPYTHON_VERSION = "5-26-2015"
